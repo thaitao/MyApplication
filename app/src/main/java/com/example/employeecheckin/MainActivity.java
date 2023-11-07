@@ -1,8 +1,11 @@
 package com.example.employeecheckin;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.hardware.display.DisplayManager;
 import android.os.Bundle;
 
 import com.example.employeecheckin.databinding.ActivityMainBinding;
@@ -23,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -80,6 +84,23 @@ public class MainActivity extends AppCompatActivity
         // the GoogleSignInAccount will be non-null.
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         updateUI(account);
+
+        DisplayManager displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        Display[] displays = displayManager.getDisplays();
+        Display secondDisplay = null;
+        for (int i = 0; i<displays.length; i++)
+        {
+            if (displays[i].getDisplayId() != Display.DEFAULT_DISPLAY)
+            {
+                secondDisplay = displays[i];
+                break;
+            }
+        }
+
+        ActivityOptions options = ActivityOptions.makeBasic();
+        options.setLaunchDisplayId(secondDisplay.getDisplayId());
+        Intent intent = new Intent(this, MainActivity2.class);
+        startActivity(intent, options.toBundle());
     }
 
     private void signIn() {
