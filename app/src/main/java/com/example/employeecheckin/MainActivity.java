@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.hardware.display.DisplayManager;
+import android.hardware.usb.UsbManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.example.employeecheckin.databinding.ActivityMainBinding;
@@ -44,12 +46,23 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.Arrays;
+
 public class MainActivity extends AppCompatActivity
 {
+    private static final String ACTION_USB_PERMISSION="com.jack.rfiddemo.USB_PERMISSION";
+
     private static final int REQUEST_CODE_GOOGLE_SIGN_IN = 1;
     //    private FragmentFirstBinding binding;
     private GoogleSignInClient mGoogleSignInClient;
-
+    RFIDPnPacket mRFIDPacket;
+    int[] myCardNoData = new int[32];
+    private String lastId;
+    private String tempId;
+    private LocalTime time;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState)
@@ -66,7 +79,6 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view)
             {
                 signIn();
-
             }
         });
 
@@ -97,10 +109,18 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        ActivityOptions options = ActivityOptions.makeBasic();
-        options.setLaunchDisplayId(secondDisplay.getDisplayId());
-        Intent intent = new Intent(this, MainActivity2.class);
-        startActivity(intent, options.toBundle());
+        if (secondDisplay != null)
+        {
+            ActivityOptions options = ActivityOptions.makeBasic();
+            options.setLaunchDisplayId(secondDisplay.getDisplayId());
+            Intent intent = new Intent(this, MainActivity2.class);
+            startActivity(intent, options.toBundle());
+        }
+
+//        setupRFID();
+
+        Intent intent = new Intent(getApplicationContext(), TagReceiveService.class);
+        startForegroundService(intent);
     }
 
     private void signIn() {
@@ -215,5 +235,74 @@ public class MainActivity extends AppCompatActivity
             textView.setText(account.getId());
             Toast.makeText(this, account.toString(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void setupRFID()
+    {
+        mRFIDPacket=new RFIDPnPacket((UsbManager) getSystemService(Context.USB_SERVICE), this,
+                ACTION_USB_PERMISSION);
+
+        new AsyncTask<Integer, Object, Integer>()
+        {
+            @Override
+            protected void onPostExecute(Integer integer)
+            {
+                if (integer > 0)
+                {
+                    scan();
+                }
+            }
+
+            @Override
+            protected Integer doInBackground(Integer... integers)
+            {
+                return mRFIDPacket.PN_RF_Set(0);
+            }
+        }.execute(0);
+
+
+
+    }
+
+    private void scan()
+    {
+        new AsyncTask<Integer, Object, String>()
+        {
+            @Override
+            protected void onPostExecute(String id)
+            {
+                if (id != null && !id.isEmpty())
+                {
+                    Toast.makeText(MainActivity.this, "Read Card successful " + lastId, Toast.LENGTH_SHORT).show();
+                }
+                scan();
+            }
+
+            @Override
+            protected String doInBackground(Integer... integers)
+            {
+                Arrays.fill(myCardNoData,0);
+                int irr = mRFIDPacket.PN_RF_M1_Search(myCardNoData,5);
+
+                tempId = USBOp.convert2String(myCardNoData, irr);
+
+                if (tempId == null || tempId.isEmpty() || !tempId.equals(lastId))
+                {
+                    lastId = tempId;
+                    time = LocalTime.now();
+                    return lastId;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }.execute(0);
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
     }
 }

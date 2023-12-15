@@ -4,6 +4,13 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import com.example.employeecheckin.schedule.Customer;
+import com.example.employeecheckin.schedule.Schedule;
+import com.example.employeecheckin.schedule.Service;
+import com.example.employeecheckin.schedule.Technician;
+
+import java.util.Arrays;
+
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
@@ -12,8 +19,27 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest
 {
     @Test
-    public void addition_isCorrect()
+    public void testSchedule()
     {
-        assertEquals(4, 2 + 2);
+        Schedule.add(Customer.random());
+        Schedule.add(Customer.random());
+        Schedule.add(Customer.random());
+        Schedule.add(Customer.random());
+        Schedule.add(Customer.random());
+        Schedule.add(Customer.random());
+
+        Technician Hannah = new Technician("Han", Arrays.asList(Service.FS, Service.D, Service.F, Service.M, Service.PP, Service.P));
+        Technician Anna = new Technician("Anna", Arrays.asList(Service.D, Service.F, Service.M, Service.PP, Service.P));
+        Technician Nana = new Technician("Nana", Arrays.asList(Service.M, Service.PP, Service.P));
+        Technician Jimmy = new Technician("Jimmy", Arrays.asList(Service.PP, Service.P));
+        Technician Thai = new Technician("Thai", Arrays.asList(Service.M, Service.PP, Service.P));
+
+        Schedule.add(Hannah);
+        Schedule.add(Anna);
+        Schedule.add(Nana);
+        Schedule.add(Jimmy);
+        Schedule.add(Thai);
+
+        Schedule.compute();
     }
 }
