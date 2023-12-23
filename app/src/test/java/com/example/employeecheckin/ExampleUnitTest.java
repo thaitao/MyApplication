@@ -8,6 +8,7 @@ import com.example.employeecheckin.schedule.Customer;
 import com.example.employeecheckin.schedule.Schedule;
 import com.example.employeecheckin.schedule.Service;
 import com.example.employeecheckin.schedule.Technician;
+import com.example.employeecheckin.schedule.tree.ScheduleTree;
 
 import java.util.Arrays;
 
@@ -41,5 +42,13 @@ public class ExampleUnitTest
         Schedule.add(Thai);
 
         Schedule.compute();
+    }
+
+    @Test
+    public void testScheduleTree()
+    {
+        ScheduleTree tree = new ScheduleTree(0, 100);
+        tree.schedule(30, 40);
+
     }
 }
